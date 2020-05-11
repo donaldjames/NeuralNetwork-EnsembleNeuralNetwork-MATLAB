@@ -39,13 +39,28 @@ function [node, epoch, per_list] = experiment_1(iterate_count)
                 net.performFcn = 'crossentropy';  % Cross-Entropy
 
                 % calling the training function
-                [performance, percentErrors, y] = training_function(net, x, t);
+                % [performance, percentErrors, y] = training_function(net, x, t);
+                [net, tr] = train(net,x,t);
+                y = net(x);
+                e = gsubtract(t,y);
+                performance = perform(net,t,y);
+                tind = vec2ind(t);
+                yind = vec2ind(y);
+                percentErrors = sum(tind ~= yind)/numel(tind);
+
+                % Recalculate Training, Validation and Test Performance
+                trainTargets = t .* tr.trainMask{1};
+                %valTargets = t .* tr.valMask{1};
+                testTargets = t .* tr.testMask{1};
+                trainPerformance = perform(net,trainTargets,y)
+                %valPerformance = perform(net,valTargets,y)
+                testPerformance = perform(net,testTargets,y)
 
                 % Storing the performance of each run to performance_list
-                performance_list2(iter_counter, :) = [percentErrors nodes(node_index) epoch_set(epoch_value_index)];
+                performance_list2(iter_counter, :) = [testPerformance nodes(node_index) epoch_set(epoch_value_index)];
                 iter_counter = iter_counter + 1;
                 performance_per_iter(i, :) = performance;
-                performance_error_per_iter(i, :) = percentErrors;
+                performance_error_per_iter(i, :) = testPerformance;
                 
 
                 if (false)
