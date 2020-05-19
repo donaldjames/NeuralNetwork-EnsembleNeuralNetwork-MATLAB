@@ -8,9 +8,9 @@ function [node, epoch, per_list] = experiment_1(iterate_count)
     trainFcn = 'trainscg';  % Scaled conjugate gradient backpropagation.
 
     % Create a Pattern Recognition Network
-    nodes = [2 8 32];
-    epoch_set = [4 8 16 32 64];
-    per_list = zeros(15, 6);
+    nodes = [2 8 16 32];
+    epoch_set = [4 8 16 32 64 128];
+    per_list = zeros(24, 6);
     node_epoch_index = 1;
     for node_index = 1:length(nodes)
         hiddenLayerSize = nodes(node_index);
@@ -32,7 +32,7 @@ function [node, epoch, per_list] = experiment_1(iterate_count)
                 net.divideParam.valRatio = 0/100;
                 net.divideParam.testRatio = 50/100;
 
-                % calling the training function
+                % Training the network
                 [net, tr] = train(net,x,t);
                 y = net(x);
                 e = gsubtract(t,y);
@@ -63,24 +63,35 @@ function [node, epoch, per_list] = experiment_1(iterate_count)
         end
     end
     % plot the graph of error rate against epochs for each node values
-    node2epochs = per_list(1:5, 2);
-    node8epochs = per_list(6:10, 2);
-    node32epochs = per_list(11:15, 2);
+    node2epochs = per_list(1:6, 2);
+    node8epochs = per_list(7:12, 2);
+    node16epochs = per_list(13:18, 2);
+    node32epochs = per_list(19:24, 2);
 
-    node2testerrorrate = per_list(1:5, 3);
-    node8testerrorrate = per_list(6:10, 3);
-    node32testerrorrate = per_list(11:15, 3);
+    node2testerrorrate = per_list(1:6, 3);
+    node8testerrorrate = per_list(7:12, 3);
+    node16testerrorrate = per_list(13:18, 3);
+    node32testerrorrate = per_list(19:24, 3);
+    
+    node2trainerrorrate = per_list(1:6, 5);
+    node8trainerrorrate = per_list(7:12, 5);
+    node16trainerrorrate = per_list(13:18, 5);
+    node32trainerrorrate = per_list(19:24, 5);
 
     figure;
     plot(node2epochs, node2testerrorrate, 'r', node8epochs, node8testerrorrate, 'g',...
-        node32epochs, node32testerrorrate, 'b'), legend('node: 2', 'node: 8', 'node: 32'), ...
-        xlabel('Epoch'), ylabel('Error'), title('Test Error vs Epoch');
-    %% plot ends
+        node16epochs, node16testerrorrate, 'b', node32epochs, node32testerrorrate, 'c'), ...
+        legend('node: 2', 'node: 8', 'node: 16', 'node: 32'), ...
+        xlabel('Epoch'), ylabel('Error'), title('Test Error');
     
-    %%
+    figure;
+    plot(node2epochs, node2trainerrorrate, 'r', node8epochs, node8trainerrorrate, 'g',...
+        node16epochs, node16trainerrorrate, 'b', node32epochs, node32trainerrorrate, 'c'), ...
+        legend('node: 2', 'node: 8', 'node: 16', 'node: 32'), ...
+        xlabel('Epoch'), ylabel('Error'), title('Train Error');
+    
     % finding the node and epoch value with lowest error rate
     sorted_performance_error_list = sortrows(per_list, [3 4])
     node = sorted_performance_error_list(1, 1);
-    epoch = sorted_performance_error_list(1, 2); 
-    %%
+    epoch = sorted_performance_error_list(1, 2);
 end
