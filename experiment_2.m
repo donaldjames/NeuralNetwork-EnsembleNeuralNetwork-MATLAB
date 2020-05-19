@@ -9,8 +9,8 @@ function ensemble_performance_list = experiment_2(hiddenLayerSize, epoch, iterat
     % General network definitions   
 	net_definition = patternnet(hiddenLayerSize, trainFcn);
 	net_input_processfcns = {'removeconstantrows','mapminmax'};
-	% net_performfcn = 'mse'; % Mean squared Error
-	net_performfcn = 'crossentropy'; % Cross Entropy
+	net_performfcn = 'mse'; % Mean squared Error
+	% net_performfcn = 'crossentropy'; % Cross Entropy
 	net_plot_functions = {'plotperform','plottrainstate','ploterrhist', ...
                 'plotconfusion', 'plotroc'}; % plotting the listed graphs while training the model         
 
