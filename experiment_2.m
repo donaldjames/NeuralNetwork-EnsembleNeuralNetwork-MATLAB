@@ -93,10 +93,4 @@ function ensemble_performance_list = experiment_2(hiddenLayerSize, epoch, iterat
         ensemble_performance_list(index, :) = [ensemble_node_count average_ensemble_performance average_performance];
         index = index + 1;
     end
-    % Performance graph
-    figure; % Performance vs ensemble classifier
-    x = ensemble_performance_list(:,1);
-    y = ensemble_performance_list(:,2:3);
-    bar(x, y), legend('Ensemble Error', 'Individual Classifier Error'), xlabel('Ensemble (classifier count)'), ylabel('Error')
-    title(train_function);
 end    
