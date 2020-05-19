@@ -6,24 +6,14 @@ function ensemble_performance_list = experiment_2(hiddenLayerSize, epoch, iterat
     
     trainFcn = train_function; % Training function
     
-    % Create a Pattern Recognition Network    
-    % First network(For ensemble NN)
-    net1 = patternnet(hiddenLayerSize, trainFcn);
-    net1.trainParam.epochs = epoch;
-    net1.input.processFcns = {'removeconstantrows','mapminmax'};
-    net1.performFcn = 'mse';  % Mean squeared error
-    %net1.performFcn = 'crossentropy';  % Cross-Entropy
-    net1.plotFcns = {'plotperform','plottrainstate','ploterrhist', ...
-                'plotconfusion', 'plotroc'}; % plotting the listed graphs while training the model
-    
-    % Second network(without ensemble NN)
-    net2 = patternnet(hiddenLayerSize, trainFcn);
-    net2.trainParam.epochs = epoch;
-    net2.input.processFcns = {'removeconstantrows','mapminmax'};
-    %net2.performFcn = 'crossentropy';  % Cross-Entropy        
-    net2.performFcn = 'mse';  % Mean squeared error
-    net2.plotFcns = {'plotperform','plottrainstate','ploterrhist', ...
-        'plotconfusion', 'plotroc'}; % plot functions         
+    % General network definitions   
+	net_definition = patternnet(hiddenLayerSize, trainFcn);
+	net_input_processfcns = {'removeconstantrows','mapminmax'};
+	% net_performfcn = 'mse'; % Mean squared Error
+	net_performfcn = 'crossentropy'; % Cross Entropy
+	net_plot_functions = {'plotperform','plottrainstate','ploterrhist', ...
+                'plotconfusion', 'plotroc'}; % plotting the listed graphs while training the model         
+
     
     % ensemble_performance_list will store ensemble_node_count,
     % ensemble_average_performance and performance without ensemble.
@@ -33,8 +23,23 @@ function ensemble_performance_list = experiment_2(hiddenLayerSize, epoch, iterat
     for ensemble_node_count = 3:2:25
         disp(ensemble_node_count);
         ensemble_performance = [];
+    
+        % First network(For ensemble NN)
+        net1 = net_definition;
+        net1.trainParam.epochs = epoch;
+        net1.input.processFcns = net_input_processfcns;
+        net1.performFcn = net_performfcn;
+        net1.plotFcns = {};
+    
+        % Second network(without ensemble NN)
+        net2 = net_definition;
+        net2.trainParam.epochs = epoch;
+        net2.input.processFcns = net_input_processfcns;
+        net2.performFcn = net_performfcn;  
+        net2.plotFcns = {};
+        
         for i = 1:iterate_count
-            ensemble_output_list = [];
+            ensemble_output_list = []; % list to store ensemble output values
             
             x = cancerInputs;
             t = cancerTargets;
@@ -53,9 +58,7 @@ function ensemble_performance_list = experiment_2(hiddenLayerSize, epoch, iterat
             
             for ensemble_nodes = 1:ensemble_node_count
                 % Training the network
-                % rands(node, 699);
-                % randomw = rands(8,699);
-				% net1.iw(randomw);
+                net1.inputWeights{1,''}.initFcn = rands(9,699);
                 [net1, tr] = train(net1,x,t);
                 y = net1(x);
                 ensemble_output_list = [ensemble_output_list; y];
@@ -74,7 +77,7 @@ function ensemble_performance_list = experiment_2(hiddenLayerSize, epoch, iterat
             %ensemble_performance_error_value = sum(tind ~= yind)/numel(tind);
             
             % Performance without ensemble
-            % rands(8,699);
+            net2.inputWeights{1,''}.initFcn = rands(9,699);
             [net2, tr] = train(net2,x,t);
             y = net2(x);
             performance = perform(net2,t,y);
@@ -93,7 +96,7 @@ function ensemble_performance_list = experiment_2(hiddenLayerSize, epoch, iterat
     % Performance graph
     figure; % Performance vs ensemble classifier
     x = ensemble_performance_list(:,1);
-    y = [ensemble_performance_list(:,2) ensemble_performance_list(:,3)];
-    bar(x, y), legend('Ensemble Performance', 'Without ensemble performance'), xlabel('Ensemble Classifier'), ylabel('Performance Error')
+    y = ensemble_performance_list(:,2:3);
+    bar(x, y), legend('Ensemble Error', 'Individual Classifier Error'), xlabel('Ensemble (classifier count)'), ylabel('Error')
     title(train_function);
-% end    
+end    
