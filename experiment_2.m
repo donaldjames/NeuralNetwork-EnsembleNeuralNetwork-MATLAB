@@ -1,7 +1,7 @@
 % Experiment 2
 % The node epoch combination with the lowest error rate is taken and
 % do the random ensemble.
-function ensemble_performance_list = experiment_2(hiddenLayerSize, epoch, iterate_count, train_function)
+function ensemble_performance_list = experiment_2(hiddenLayerSize, epoch, iterate_count, train_function, performance_function)
     load cancer_dataset; % loading the cancer dataset
     
     trainFcn = train_function; % Training function
@@ -9,16 +9,14 @@ function ensemble_performance_list = experiment_2(hiddenLayerSize, epoch, iterat
     % General network definitions   
 	net_definition = patternnet(hiddenLayerSize, trainFcn);
 	net_input_processfcns = {'removeconstantrows','mapminmax'};
-	net_performfcn = 'mse'; % Mean squared Error
-	% net_performfcn = 'crossentropy'; % Cross Entropy
-	net_plot_functions = {'plotperform','plottrainstate','ploterrhist', ...
-                'plotconfusion', 'plotroc'}; % plotting the listed graphs while training the model         
-
+	net_performfcn = performance_function; % performance function
+	% plotting the listed graphs while training the model
+	net_plot_functions = {'plotperform','plottrainstate', ...
+						'ploterrhist', 'plotconfusion', 'plotroc'}; 
     
     % ensemble_performance_list will store ensemble_node_count,
     % ensemble_average_performance and performance without ensemble.
     ensemble_performance_list = zeros(12, 3);
-    % Ensemble classification
     index = 1;
     for ensemble_node_count = 3:2:25
         disp(ensemble_node_count);
@@ -39,7 +37,8 @@ function ensemble_performance_list = experiment_2(hiddenLayerSize, epoch, iterat
         net2.plotFcns = {};
         
         for i = 1:iterate_count
-            ensemble_output_list = []; % list to store ensemble output values
+			% list to store ensemble output values
+            ensemble_output_list = []; 
             
             x = cancerInputs;
             t = cancerTargets;
@@ -56,6 +55,7 @@ function ensemble_performance_list = experiment_2(hiddenLayerSize, epoch, iterat
             net2.divideParam.trainRatio = 50/100;
             net2.divideParam.testRatio = 50/100;
             
+			% Ensemble with 'ensemble_nodes' individual classifiers
             for ensemble_nodes = 1:ensemble_node_count
                 % Training the network
                 net1.inputWeights{1,''}.initFcn = rands(9,699);
@@ -71,10 +71,6 @@ function ensemble_performance_list = experiment_2(hiddenLayerSize, epoch, iterat
             majority_vote_output = [majority_vote_output1; majority_vote_output2];
             
             ensemble_performance_value = perform(net1,t,majority_vote_output);
-            tind = vec2ind(t);
-            yind = vec2ind(majority_vote_output);
-            %percentErrors = sum(tind ~= yind)/numel(tind);
-            %ensemble_performance_error_value = sum(tind ~= yind)/numel(tind);
             
             % Performance without ensemble
             net2.inputWeights{1,''}.initFcn = rands(9,699);
@@ -83,7 +79,7 @@ function ensemble_performance_list = experiment_2(hiddenLayerSize, epoch, iterat
             performance = perform(net2,t,y);
             
             % storing the ensemble performance along with individual
-            % performance onto ensemble_performance
+            % performance to ensemble_performance list
             ensemble_performance = [ensemble_performance; ensemble_performance_value, performance];
         end
         
